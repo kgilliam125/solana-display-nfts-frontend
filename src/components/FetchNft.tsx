@@ -44,9 +44,9 @@ export const FetchNft: FC = () => {
             <div>
               <ul>{nft.name}</ul>
               <img src={nft.image} alt="" />
-              <ul>{nft.attributes.map((a) =>(
+              {/* <ul>{nft.attributes.map((a) =>(
                 <li>`${a.trait_type} : ${a.value}`</li>
-              ))}</ul>
+              ))}</ul> */}
             </div>
           ))}
         </div>

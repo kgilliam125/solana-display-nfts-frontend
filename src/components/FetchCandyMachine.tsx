@@ -1,23 +1,84 @@
-import { useConnection } from "@solana/wallet-adapter-react"
-import { PublicKey } from "@solana/web3.js"
-import { Metaplex } from "@metaplex-foundation/js"
-import { FC, useEffect, useState } from "react"
-import styles from "../styles/custom.module.css"
+import { useConnection } from "@solana/wallet-adapter-react";
+import { PublicKey } from "@solana/web3.js";
+import { Metaplex } from "@metaplex-foundation/js";
+import { FC, useEffect, useMemo, useState } from "react";
+import styles from "../styles/custom.module.css";
 
 export const FetchCandyMachine: FC = () => {
-  const [candyMachineAddress, setCandyMachineAddress] = useState(null)
-  const [candyMachineData, setCandyMachineData] = useState(null)
-  const [pageItems, setPageItems] = useState(null)
-  const [page, setPage] = useState(1)
+  const [candyMachineAddress, setCandyMachineAddress] = useState(null);
+  const [candyMachineData, setCandyMachineData] = useState(null);
+  const [pageItems, setPageItems] = useState(null);
+  const [page, setPage] = useState(1);
 
-  const fetchCandyMachine = async () => {}
+  const { connection } = useConnection();
 
-  const getPage = async (page, perPage) => {}
+  const metaplex = useMemo(() => {
+    return Metaplex.make(connection);
+  }, [connection]);
 
-  const prev = async () => {}
+  const fetchCandyMachine = async () => {
+    setPage(1);
 
-  const next = async () => {}
+    try {
+      const candyMachine = await metaplex
+        .candyMachines()
+        .findByAddress({
+          address: new PublicKey(candyMachineAddress),
+        })
+        .run();
+      setCandyMachineData(candyMachine);
+    } catch (e) {
+      alert("Please submit a valid candymachine v2 address");
+      console.log(e);
+    }
+  };
 
+  const getPage = async (page, perPage) => {
+    const pageItems = candyMachineData.items.slice(
+      (page - 1) * perPage,
+      page * perPage
+    );
+
+    let nftData =[]
+    for (let i=0; i<pageItems.length; i++) {
+      let fetchResult = await fetch(pageItems[i].uri)
+      let json = await fetchResult.json()
+      nftData.push(json)
+    }
+    console.log(nftData)
+
+    setPageItems(nftData)
+  };
+
+  const prev = async () => {
+    if (page - 1 < 1) {
+      setPage(1)
+    } else {
+      setPage(page-1)
+    }
+  };
+
+  const next = async () => {
+    setPage(page+1)
+  };
+
+  // useEffect(() => {
+  //   if (!candyMachineAddress) {
+  //     return
+  //   }
+
+  //   fetchCandyMachine()
+  // }, [candyMachineAddress])
+
+  // 6HeFKAZRT9veCs1PxG4EtxzEtBFrZqzXadPv4DzvTDi4
+  useEffect(() => {
+    console.log(candyMachineData)
+    if (!candyMachineData) {
+      return
+    }
+
+    getPage(page, 9)
+  }, [candyMachineData])
   return (
     <div>
       <input
@@ -64,5 +125,5 @@ export const FetchCandyMachine: FC = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
